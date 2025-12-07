@@ -5,6 +5,16 @@
 Forget writing complex aggregation pipelines manually—just ask, and MongoChat understands the structure of your data and helps you retrieve it.
 
 ---
+Dashboard
+<img width="955" height="443" alt="image" src="https://github.com/user-attachments/assets/e819a772-319e-4ddf-977d-579c5991a55f" />
+Chat Agent
+<img width="1920" height="891" alt="image" src="https://github.com/user-attachments/assets/0a89c0ec-5aa5-48d9-9e74-af5bc32f4303" />
+
+Convertion - Chat
+<img width="1920" height="899" alt="image" src="https://github.com/user-attachments/assets/32f986e6-9aa0-481a-9b79-c7dcd07b85ae" />
+<img width="1920" height="890" alt="image" src="https://github.com/user-attachments/assets/0667f9cd-be5a-44e4-8e38-bfee4b73969c" />
+<img width="1920" height="889" alt="image" src="https://github.com/user-attachments/assets/89d4e5e0-b0b1-4d49-8970-2c6da45913dc" />
+
 
 ## 🚀 Key Features
 
