@@ -36,30 +36,68 @@ class MongoService:
             logger.error(f"Error fetching sample from {collection_name}: {e}")
             return "{}"
 
-    def execute_query(self, query_str):
+    def execute_tool_query(self, tool_input):
         """
-        Executes a raw query string (simplified implementation).
-        WARNING: This is risky. Real implementation needs safe parsing.
+        Executes a parsed JSON query action.
+        Expected format:
+        {
+            "collection": "str",
+            "action": "find/aggregate/count/distinct",
+            "query": dict/list,
+            "limit": int (optional)
+        }
         """
-        logger.info(f"Preparing to execute query: {query_str}")
-        # Very basic unsafe parsing for POC
-        # Expecting JSON like { "field": "value" } or [{ "$group": ... }]
+        collection = tool_input.get('collection')
+        action = tool_input.get('action')
+        query = tool_input.get('query', {})
+        
+        logger.info(f"Executing tool action: {action} on {collection}")
+        
+        if not collection or collection not in self.get_collection_names():
+            return f"Error: Collection '{collection}' does not exist."
+
+        col_obj = self.db[collection]
+
         try:
-            query = json.loads(query_str)
-            logger.debug(f"Parsed query JSON: {query}")
+            if action == 'find':
+                limit = tool_input.get('limit', 5)
+                # Ensure limit is reasonable
+                limit = min(limit, 20)
+                cursor = col_obj.find(query).limit(limit)
+                results = list(cursor)
+                formatted = json.dumps(results, default=str)
+                return f"Found {len(results)} documents: {formatted}"
             
-            # Heuristic: List = Aggregation, Dict = Find
-            # We don't know which collection to target from the query string alone easily without parsing.
-            # So we probably need the LLM to tell us the collection OR we guess.
-            # Updated: We will ask LLM to return { "collection": "name", "pipeline": [...] }
-            logger.warning("Query execution attempted but not fully implemented.")
-            return "Execution not fully implemented without query parsing safety."
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON in query string: {e}")
-            return f"Invalid JSON: {str(e)}"
+            elif action == 'aggregate':
+                if not isinstance(query, list):
+                    return "Error: Aggregation pipeline must be a list."
+                # Safety: Basic check to prevent modifications (though user should be read-only ideally)
+                unsafe_stages = ['$out', '$merge']
+                for stage in query:
+                    if any(k in unsafe_stages for k in stage.keys()):
+                        return "Error: Write operations ($out, $merge) are not allowed."
+                
+                results = list(col_obj.aggregate(query))
+                formatted = json.dumps(results, default=str)
+                return f"Aggregation Result: {formatted}"
+            
+            elif action == 'count':
+                count = col_obj.count_documents(query)
+                return f"Count: {count}"
+            
+            elif action == 'distinct':
+                field = tool_input.get('field')
+                if not field:
+                    return "Error: 'field' required for distinct."
+                results = col_obj.distinct(field, query)
+                return f"Distinct values for '{field}': {results[:50]}" # Limit output
+
+            else:
+                return f"Error: Unknown action '{action}'."
+
         except Exception as e:
-            logger.error(f"Query execution failed: {e}")
-            return str(e)
+            logger.error(f"Tool execution failed: {e}")
+            return f"Database Error: {str(e)}"
 
     def extract_schema_info(self):
         """

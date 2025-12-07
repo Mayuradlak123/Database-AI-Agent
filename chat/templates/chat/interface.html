@@ -55,6 +55,9 @@
                 <div
                     class="p-4 rounded-2xl shadow-md {% if msg.role == 'user' %}bg-primary text-white rounded-br-none{% else %}bg-gray-800 text-gray-200 rounded-bl-none border border-gray-700/50{% endif %}">
                     <p class="whitespace-pre-wrap">{{ msg.content }}</p>
+                    {% if msg.timestamp %}
+                    <p class="text-[10px] opacity-70 mt-2 text-right">{{ msg.timestamp }}</p>
+                    {% endif %}
                 </div>
 
                 {% if msg.role == 'assistant' %}
@@ -80,9 +83,6 @@
                 </svg>
             </button>
         </form>
-        <div class="text-center mt-2 text-xs text-gray-500">
-            Powered by Groq & ChromaDB
-        </div>
     </div>
 </div>
 
@@ -98,7 +98,7 @@
     }
     scrollToBottom();
 
-    function appendMessage(role, content) {
+    function appendMessage(role, content, timestamp) {
         const isUser = role === 'user';
         const wrapper = document.createElement('div');
         wrapper.className = `flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`;
@@ -112,10 +112,18 @@
 
         const messageContent = document.createElement('div');
         messageContent.className = 'whitespace-pre-wrap leading-relaxed';
-        messageContent.innerText = content; // Using innerText for safety against HTML injection from raw text
+        messageContent.innerText = content;
 
         bubble.appendChild(roleLabel);
         bubble.appendChild(messageContent);
+
+        if (timestamp) {
+            const timeLabel = document.createElement('p');
+            timeLabel.className = 'text-[10px] opacity-70 mt-2 text-right';
+            timeLabel.innerText = timestamp;
+            bubble.appendChild(timeLabel);
+        }
+
         wrapper.appendChild(bubble);
         chatContainer.appendChild(wrapper);
         scrollToBottom();
@@ -146,8 +154,12 @@
         const query = userInput.value.trim();
         if (!query) return;
 
-        // Add user message
-        appendMessage('user', query);
+        // Add user message - Generate generic local time for immediate feedback or wait?
+        // Let's use generic local time for immediate feedback
+        const now = new Date();
+        const localTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+        appendMessage('user', query, localTime);
         userInput.value = '';
 
         // Show typing
@@ -170,7 +182,7 @@
             removeTyping();
 
             if (data.success) {
-                appendMessage('assistant', data.response);
+                appendMessage('assistant', data.response, data.timestamp);
             } else {
                 appendMessage('assistant', `Error: ${data.message || 'Something went wrong.'}`);
             }

@@ -8,12 +8,15 @@ Forget writing complex aggregation pipelines manually—just ask, and MongoChat 
 
 ## 🚀 Key Features
 
-*   **🗣️ Natural Language Chat:** Ask questions like "Who are the top 5 users by spend?" in plain English.
+*   **⚡ Agentic Data Retrieval:** The AI simply doesn't just "talk"—it **ACTS**. If you ask "Count the users", it securely executes the query and gives you the real number.
+*   **🧑‍💻 Smart Code Generation:** If you ask "How do I write a query?", it switches modes to teach you, providing clean, copy-pasteable code without internal tool jargon.
+*   **🗣️ Natural Language Chat:** Ask complex questions in plain English.
 *   **🔌 Secure Connection:** Connect to any MongoDB cluster (Atlas or local) securely. Credentials are ephemeral and stored only in your session.
-*   **🧠 RAG Engine (Retrieval-Augmented Generation):** The system scans your database schema, indexes it, and uses this knowledge to give accurate answers.
-*   **⚡ Real-Time Experience:** No page reloads! Built with AJAX for a smooth, app-like feel.
-*   **💾 Persistent Memory:** Your chat history is saved securely, so you can pick up where you left off.
-*   **🔒 Safety First:** Environment variable protection and comprehensive logging for all interactions.
+*   **🧠 RAG Engine:** The system scans your database schema, indexes it, and uses this knowledge to give accurate answers.
+*   **📝 Comprehensive Logging:**
+    *   **Application Logs:** Detailed system events in `logs/mongo_chat.log`.
+    *   **Audit History:** Tracks who asked what, including **System IPv4** (LAN IP) logging for local users.
+*   **⏱️ Real-Time UX:** AJAX-based chat, auto-scrolling, and per-message **timestamps**.
 
 ---
 
@@ -25,7 +28,7 @@ Here is a map of the files in this project:
 mongo_chat_platform/            # 📁 ROOT DIRECTORY
 │
 ├── manage.py                   # ⚙️ Django's command-line utility
-├── run.sh / run.bat            # 🚀 Scripts to start the server easily
+├── run.sh / run.bat            # 🚀 Scripts to start the server (Auto-cleans caches)
 ├── requirements.txt            # 📦 List of python libraries required
 ├── README.md                   # 📖 This documentation file
 ├── .env                        # 🔐 Secrets (API Keys) - Create this yourself!
@@ -34,7 +37,7 @@ mongo_chat_platform/            # 📁 ROOT DIRECTORY
 │   ├── settings.py             # Global settings (Installed apps, Middleware)
 │   ├── logger.py               # Central logging setup (Console + File)
 │   └── services/               # The "Brain" of the application
-│       ├── mongo_service.py    # Connects to your MongoDB to read schema
+│       ├── mongo_service.py    # Connects to your MongoDB to execute queries (Agentic)
 │       ├── chroma_service.py   # Vector DB (RAG) to remember your schema
 │       ├── llm_service.py      # Talks to Groq AI (Llama 3)
 │       └── logging_service.py  # Saves chat history to a database
@@ -44,8 +47,8 @@ mongo_chat_platform/            # 📁 ROOT DIRECTORY
 │   └── templates/connect/      # HTML for the Connection Form
 │
 ├── chat/                       # 💬 APP: CHAT INTERFACE
-│   ├── views.py                # Handles messaging & retrieval logic (AJAX enabled)
-│   └── templates/chat/         # HTML for the Chat Interface
+│   ├── views.py                # Handles messaging, tool execution loop & logging
+│   └── templates/chat/         # HTML for the Chat Interface (Timestamps enabled)
 │
 ├── templates/                  # 🎨 SHARED TEMPLATES
 │   └── base.html               # Main layout file (includes Tailwind CSS)
@@ -125,9 +128,12 @@ Visit **`http://127.0.0.1:8000`** in your browser.
 1.  **Connect:** Enter your MongoDB Connection String (e.g., `mongodb+srv://user:pass@cluster...`) on the home screen.
 2.  **Wait:** On the very first run, the system will download a small AI embedding model. This takes about 1-2 minutes.
 3.  **Chat:** Once connected, you'll be taken to the chat interface.
-    *   *Ask:* "What collections are in this database?"
-    *   *Ask:* "Show me a sample document from the users collection."
-    *   *Ask:* "Write a query to find users who signed up before 2024."
+
+### Agentic Capabilities (New!)
+*   **Ask for Data:** "How many users are active?"
+    *   *The AI performs a live count in the DB and answers: "There are 150 active users."*
+*   **Ask for Code:** "Show me the query to find active users."
+    *   *The AI switches mode and gives you the clean code block: `db.users.find({...})`.*
 
 ---
 
@@ -135,5 +141,6 @@ Visit **`http://127.0.0.1:8000`** in your browser.
 
 *   **Credential Safety**: We never store your MongoDB URI in a persistent database. It lives only in your temporary session.
 *   **Git Protection**: A `husky` pre-commit hook is installed to prevent you from accidentally committing your `.env` file.
+*   **Logging**: All interactions are logged with timestamps and **System IP** (even for localhost users) to ensure accountability.
 
 Feel free to fork this project and submit Pull Requests!
