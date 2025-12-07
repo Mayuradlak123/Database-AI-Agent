@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex flex-col justify-center items-center min-h-full py-12 px-4 sm:px-6 lg:px-8">
+    <div class="w-full max-w-md space-y-8 animate-fade-in">
+        <div class="text-center">
+            <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl mb-2">
+                <span
+                    class="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">MongoChat</span>
+            </h1>
+            <p class="mt-3 text-base text-gray-400 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl">
+                Connect your database and start talking to your data.
+            </p>
+        </div>
+
+        <div
+            class="bg-gray-800/50 backdrop-blur-lg py-8 px-4 shadow-2xl rounded-2xl sm:px-10 border border-gray-700/50">
+            <form id="connect-form" class="space-y-6" action="" method="POST">
+                {% csrf_token %}
+                <div>
+                    <label for="{{ form.mongo_uri.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                        {{ form.mongo_uri.label }}
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        {{ form.mongo_uri }}
+                    </div>
+                    <!-- Client-side error container -->
+                    <div id="error-container" class="text-red-400 text-xs mt-2 hidden"></div>
+
+                    {% if form.mongo_uri.errors %}
+                    <div class="text-red-400 text-xs mt-2">
+                        {{ form.mongo_uri.errors }}
+                    </div>
+                    {% endif %}
+                    {% if form.mongo_uri.help_text %}
+                    <p class="mt-2 text-xs text-gray-500">{{ form.mongo_uri.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <button type="submit" id="submit-btn"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transform transition hover:-translate-y-0.5 duration-200">
+                        Connect Database
+                    </button>
+                    <!-- Loading Spinner -->
+                    <div id="loading-indicator" class="hidden mt-4 text-center">
+                        <svg class="animate-spin h-5 w-5 text-primary mx-auto" xmlns="http://www.w3.org/2000/svg"
+                            fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        <p class="text-xs text-gray-400 mt-2">Connecting to MongoDB... This might take a moment.</p>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            document.getElementById('connect-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const form = e.target;
+                const submitBtn = document.getElementById('submit-btn');
+                const loading = document.getElementById('loading-indicator');
+                const errorContainer = document.getElementById('error-container');
+                const formData = new FormData(form);
+                const mongoUri = formData.get('mongo_uri'); // Or field name from django form
+                // Django form field name is usually 'mongo_uri' based on previous context, but let's check
+                // The form renders input with name="mongo_uri" if that's the field name. 
+                // Assuming it is 'mongo_uri' from views.
+
+                // UI State: Loading
+                submitBtn.classList.add('hidden');
+                loading.classList.remove('hidden');
+                errorContainer.classList.add('hidden');
+                errorContainer.innerText = '';
+
+                try {
+                    const response = await fetch('', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ mongo_uri: mongoUri })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Success: Redirect
+                        window.location.href = data.redirect_url;
+                    } else {
+                        // Error: Show message
+                        throw new Error(data.message || 'Connection failed');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    errorContainer.innerText = error.message;
+                    errorContainer.classList.remove('hidden');
+
+                    // Reset UI
+                    submitBtn.classList.remove('hidden');
+                    loading.classList.add('hidden');
+                }
+            });
+        </script>
+    </div>
+
+    <div class="text-center text-xs text-gray-500">
+        <p>Secure connection via TLS. We do not store your credentials permanently.</p>
+    </div>
+</div>
+</div>
+{% endblock %}

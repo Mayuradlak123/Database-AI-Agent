@@ -1,0 +1,7 @@
+django>=5.1
+pymongo>=4.9
+chromadb>=0.5
+groq>=0.13
+python-dotenv>=1.0
+requests>=2.32
+uvicorn>=0.32

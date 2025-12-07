@@ -1,0 +1,9 @@
+@echo off
+echo Cleaning up __pycache__ and .pyc files...
+for /d /r . %%d in (__pycache__) do @if exist "%%d" rd /s /q "%%d"
+del /s /q *.pyc
+
+echo Applying migrations...
+python manage.py migrate
+echo Starting Django Server...
+python manage.py runserver

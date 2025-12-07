@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-900">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MongoChat Platform{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#10b981',
+                        dark: '#111827',
+                        darker: '#0f172a',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="h-full text-gray-100 flex flex-col antialiased">
+
+    <nav class="bg-gray-800 border-b border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 text-primary font-bold text-xl tracking-tight">
+                        MongoChat
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if request.session.mongo_uri %}
+                    <span class="text-sm text-gray-400 bg-gray-700 px-3 py-1 rounded-full border border-gray-600">
+                        <div class="w-2 h-2 bg-green-500 rounded-full inline-block mr-2 animate-pulse"></div>
+                        Connected
+                    </span>
+                    <a href="{% url 'connect:logout' %}"
+                        class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Disconnect</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col relative overflow-y-auto">
+
+        <!-- Decorative background elements -->
+        <div
+            class="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl -z-10 mix-blend-screen pointer-events-none">
+        </div>
+        <div
+            class="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl -z-10 mix-blend-screen pointer-events-none">
+        </div>
+
+        {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
+            {% for message in messages %}
+            <div
+                class="p-4 rounded-lg mb-4 text-sm font-medium shadow-lg backdrop-blur-sm border 
+                        {% if message.tags == 'error' %}bg-red-500/10 text-red-200 border-red-500/20{% else %}bg-green-500/10 text-green-200 border-green-500/20{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>
