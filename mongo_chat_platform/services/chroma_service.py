@@ -88,14 +88,18 @@ class ChromaService:
             ids=[interaction_id]
         )
 
-    def retrieve_context(self, query, n_results=15):
+    def retrieve_context(self, query, db_name=None, n_results=15):
         """
         Retrieves relevant schema/collection info based on user query.
         """
-        logger.debug(f"Retrieving context for query: {query}")
+        logger.debug(f"Retrieving context for query: {query}, db: {db_name}")
+        
+        where_filter = {"db_name": db_name} if db_name else None
+        
         results = self.collection.query(
             query_texts=[query],
-            n_results=n_results
+            n_results=n_results,
+            where=where_filter
         )
         found_count = len(results['documents'][0]) if results['documents'] else 0
         logger.debug(f"ChromaDB: Found {found_count} relevant schema documents")

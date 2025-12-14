@@ -64,7 +64,7 @@ def chat_interface(request):
             # Note: We append to the session history at the end
             
             # RAG Retrieval (Schema)
-            context_docs = chroma_service.retrieve_context(user_query, n_results=15)
+            context_docs = chroma_service.retrieve_context(user_query, db_name=db_name, n_results=15)
             context_str = "\n".join([f"Collection: {meta['collection_name']}\nSchema Sample: {doc}" for doc, meta in context_docs])
             
             # RAG Retrieval (History)
